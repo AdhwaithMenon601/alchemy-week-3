@@ -56,7 +56,7 @@ function App() {
       let lastBlockNumber = await alchemy.core.getBlockNumber();
       setBlockNumber(lastBlockNumber);
       let arr = [];
-      for (let i = lastBlockNumber; i >= lastBlockNumber - 6; i--) {
+      for (let i = lastBlockNumber; i >= lastBlockNumber - 4; i--) {
         arr.push(i);
       }
       setFinalBlockState({ ...finalBlocksState, finalBlocks: arr });
@@ -65,7 +65,81 @@ function App() {
     getBlockNumber();
   });
 
-  return (<div className="App">Block Number: {blockNumber}</div>);
+  return (<div className="App">
+  {showMoreWallet ? (
+    <button onClick={() => setShowMoreWallet(!showMoreWallet)}>
+      More info about blocks and transactions
+    </button>
+  ) : (
+    <button onClick={() => setShowMoreWallet(!showMoreWallet)}>
+      Info about an especific wallet
+    </button>
+  )}
+  {showMoreWallet ? (
+    <div>
+      <h1>Get your balance</h1>
+      <p>Introduce an address</p>
+      <form onSubmit={(e) => handleGetBalance(e)}>
+        <input type={"text"} />
+        <input type={"submit"} />
+      </form>
+      {totalBalance !== 0 && <h4>Total Balance : {totalBalance} ETH</h4>}
+    </div>
+  ) : (
+    <div>
+      <div>
+        <h1>Last Block Number: {blockNumber}</h1>
+        <h3>Select any of the last 5 blocks mined</h3>
+        <ul>
+          {finalBlocksState.finalBlocks.map((block) => {
+            return (
+              <li onClick={(e) => handleSelectBlock(block)} key={block}>
+                {block}
+              </li>
+            );
+          })}
+        </ul>
+        {finalBlocksState.selected !== null && (
+          <div>
+            <h4>Block selected: {finalBlocksState.selected}</h4>
+            <div>
+              <p>Hash: {moreInfoSelectedBlock.hash}</p>
+              <p>Miner: {moreInfoSelectedBlock.miner}</p>
+              <p>Parent hash: {moreInfoSelectedBlock.parentHash}</p>
+              <p>Timestamp: {moreInfoSelectedBlock.timestamp}</p>
+              <p>
+                Gas used: {Utils.formatUnits(moreInfoSelectedBlock.gasUsed)}
+              </p>
+              <div>
+                <h4>Transactions</h4>
+                {moreInfoSelectedBlock.transactions.map((transaction) => {
+                  return (
+                    <div
+                      onClick={() => setShowTransaction(transaction.hash)}
+                    >
+                      <p key={transaction.hash}>{transaction.hash}</p>
+                      {showTransaction === transaction.hash && (
+                        <div>
+                          <p>Block Number: {transaction.blockNumber}</p>
+                          <p>Confirmations: {transaction.confirmations}</p>
+                          <p>From: {transaction.from}</p>
+                          <p>To: {transaction.to}</p>
+                          <p>
+                            Value: {Utils.formatUnits(transaction.value)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+</div>);
 }
 
 export default App;
